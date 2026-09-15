@@ -141,19 +141,19 @@ def build_workbook():
         "Adres": "Voorbeeldstraat 1",
         "Aantal medewerkers": 75,
         "Medewerkersklasse": "50+",
-        "Bron medewerkers": "Voorbeeldbron (fictief)",
+        "Bron medewerkers": "https://example.invalid/medewerkers",
         "Segment": "50+",
         "Algemeen e-mailadres": "info@voorbeeldbedrijf.nl",
         "Telefoonnummer": "0201234567",
-        "Bron contactgegevens": "Voorbeeldbron (fictief)",
+        "Bron contactgegevens": "https://example.invalid/contact",
         "Resultaat vergelijking acquisitielijst": "nog niet gecontroleerd",
-        "Matchwijze acquisitielijst": "nog niet uitgevoerd",
+        "Matchwijze acquisitielijst": "",
         "Datum verzameld": "15-09-2026",
         "Opmerkingen": "Fictieve voorbeeldregel, uitsluitend ter illustratie van de kolomstructuur.",
     }
     for name, value in example.items():
         c = col_index[name]
-        cell = ws.cell(row=2, column=c, value=value)
+        cell = ws.cell(row=2, column=c, value=(value if value != "" else None))
         if name in TEXT_COLUMNS:
             cell.number_format = "@"
         if name == "Datum verzameld":
