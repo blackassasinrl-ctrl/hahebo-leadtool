@@ -1,11 +1,11 @@
 """
-Importeert de 5 pilotleads (L0001 t/m L0005) uit hahebo_pilot_leads.csv
-in een kopie van HAHEBO_leadbestand_template.xlsx.
+Importeert de pilotleads uit hahebo_pilot_leads.csv in een kopie van
+HAHEBO_leadbestand_template.xlsx.
 
 Werkwijze:
 - Laadt het bestaande template (wordt zelf niet gewijzigd).
 - Verwijdert alleen de fictieve TEST001-voorbeeldregel.
-- Schrijft de 5 CSV-leads ongewijzigd (geen interpretatie, geen nieuwe
+- Schrijft alle CSV-leads ongewijzigd (geen interpretatie, geen nieuwe
   waarden) in de bestaande 29 kolommen (kolomnaam-gestuurd, dus volgt
   automatisch de kolomstructuur van het template).
 - Behoudt dropdowns, autofilter, bevroren rij, kolombreedtes, opmaak
@@ -56,7 +56,7 @@ def main():
     for r in range(2, 501):
         ws.cell(row=r, column=lead_id_col).number_format = "@"
 
-    # Schrijf de 5 pilotleads ongewijzigd, exact zoals in de CSV, vanaf rij 2.
+    # Schrijf alle pilotleads ongewijzigd, exact zoals in de CSV, vanaf rij 2.
     # "Datum verzameld" wordt als echte Excel-datum opgeslagen (i.p.v. tekst),
     # zodat later correct op datum gesorteerd en gefilterd kan worden. De
     # zichtbare notatie blijft dd-mm-jjjj via het bestaande celformaat.
