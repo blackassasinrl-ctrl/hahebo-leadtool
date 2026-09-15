@@ -46,7 +46,7 @@ COLUMNS = [
 SEGMENT_OPTIONS = ["50+", "regionaal <50", "nog te bepalen", "onbekend"]
 MATCH_RESULT_OPTIONS = ["nog niet gecontroleerd", "nieuw", "bestaat al"]
 BRONNIVEAU_OPTIONS = ["A", "B", "C", "D", "Onbekend"]
-ACTUALITEIT_OPTIONS = ["Actueel", "Verouderd", "Peildatum onbekend"]
+ACTUALITEIT_OPTIONS = ["Expliciet gedateerd", "Actueel/live", "Historisch/verouderd", "Actualiteit onduidelijk"]
 MEETNIVEAU_OPTIONS = ["Vestiging", "Entiteit", "Groep", "Onbekend"]
 EENHEID_OPTIONS = ["Werkzame personen", "FTE", "Onbekend"]
 HANDMATIG_BEOORDEELD_OPTIONS = ["Ja", "Nee"]
@@ -65,7 +65,13 @@ COLUMN_EXPLANATIONS = {
     "Bron medewerkers": "Bron waaruit het aantal medewerkers afkomstig is.",
     "Bronniveau medewerkers": "Keuzelijst: A / B / C / D / Onbekend. Geeft het kwaliteitsniveau van de bron voor het medewerkersaantal aan.",
     "Peildatum medewerkers": "Datum waarop het medewerkersaantal is gemeten, notatie dd-mm-jjjj. Tekst 'Onbekend' als geen peildatum kan worden vastgesteld.",
-    "Actualiteit medewerkers": "Keuzelijst: Actueel / Verouderd / Peildatum onbekend. Werkregel (voorlopig, nog te bevestigen door HAHEBO): Actueel = maximaal 24 maanden oud.",
+    "Actualiteit medewerkers": (
+        "Keuzelijst: Expliciet gedateerd / Actueel/live / Historisch/verouderd / Actualiteit onduidelijk. "
+        "Expliciet gedateerd: de bron noemt een concrete peildatum, boekjaar of datum waarop het medewerkersgegeven betrekking heeft. "
+        "Actueel/live: de bron presenteert het gegeven als huidige situatie op een actuele pagina, maar noemt geen expliciete peildatum. "
+        "Historisch/verouderd: het gegeven heeft duidelijk betrekking op een afgesloten of verouderde periode. "
+        "Actualiteit onduidelijk: niet betrouwbaar vast te stellen of het gegeven nog actueel is."
+    ),
     "Meetniveau medewerkers": "Keuzelijst: Vestiging / Entiteit / Groep / Onbekend. Niveau waarop het medewerkersaantal is gemeten.",
     "Eenheid medewerkers": "Keuzelijst: Werkzame personen / FTE / Onbekend. Werkzame personen is de voorkeursmaatstaf voor de grens van 50 medewerkers.",
     "Handmatig beoordeeld": "Keuzelijst: Ja / Nee. Geeft aan of deze lead handmatig is beoordeeld.",
@@ -175,7 +181,7 @@ def build_workbook():
     )
     dv_actualiteit.error = "Kies een geldige waarde uit de lijst."
     dv_actualiteit.errorTitle = "Ongeldige invoer"
-    dv_actualiteit.prompt = "Actueel = maximaal 24 maanden oud (voorlopige werkregel, nog te bevestigen door HAHEBO)."
+    dv_actualiteit.prompt = "Kies: Expliciet gedateerd / Actueel/live / Historisch/verouderd / Actualiteit onduidelijk."
     dv_actualiteit.promptTitle = "Actualiteit medewerkers"
     ws.add_data_validation(dv_actualiteit)
     dv_actualiteit.add(f"{actualiteit_col_letter}2:{actualiteit_col_letter}{text_format_rows}")
@@ -240,7 +246,7 @@ def build_workbook():
         "Bron medewerkers": "https://example.invalid/medewerkers",
         "Bronniveau medewerkers": "B",
         "Peildatum medewerkers": "01-03-2025",
-        "Actualiteit medewerkers": "Actueel",
+        "Actualiteit medewerkers": "Expliciet gedateerd",
         "Meetniveau medewerkers": "Vestiging",
         "Eenheid medewerkers": "Werkzame personen",
         "Handmatig beoordeeld": "Ja",
