@@ -26,6 +26,13 @@ COLUMNS = [
     ("Aantal medewerkers", 18),
     ("Medewerkersklasse", 18),
     ("Bron medewerkers", 20),
+    ("Bronniveau medewerkers", 18),
+    ("Peildatum medewerkers", 18),
+    ("Actualiteit medewerkers", 20),
+    ("Meetniveau medewerkers", 18),
+    ("Eenheid medewerkers", 18),
+    ("Handmatig beoordeeld", 16),
+    ("Bronnen handmatige beoordeling", 32),
     ("Segment", 16),
     ("Algemeen e-mailadres", 28),
     ("Telefoonnummer", 16),
@@ -38,6 +45,11 @@ COLUMNS = [
 
 SEGMENT_OPTIONS = ["50+", "regionaal <50", "nog te bepalen", "onbekend"]
 MATCH_RESULT_OPTIONS = ["nog niet gecontroleerd", "nieuw", "bestaat al"]
+BRONNIVEAU_OPTIONS = ["A", "B", "C", "D", "Onbekend"]
+ACTUALITEIT_OPTIONS = ["Actueel", "Verouderd", "Peildatum onbekend"]
+MEETNIVEAU_OPTIONS = ["Vestiging", "Entiteit", "Groep", "Onbekend"]
+EENHEID_OPTIONS = ["Werkzame personen", "FTE", "Onbekend"]
+HANDMATIG_BEOORDEELD_OPTIONS = ["Ja", "Nee"]
 
 COLUMN_EXPLANATIONS = {
     "Lead ID": "Uniek volgnummer of code voor deze lead, bijvoorbeeld TEST001.",
@@ -48,9 +60,16 @@ COLUMN_EXPLANATIONS = {
     "Vestigingsplaats": "Plaats waar het bedrijf is gevestigd.",
     "Postcode": "Postcode als tekst, zodat de notatie (incl. voorloopnullen) behouden blijft.",
     "Adres": "Straatnaam en huisnummer van het vestigingsadres.",
-    "Aantal medewerkers": "Geschat of geregistreerd aantal medewerkers (numeriek).",
+    "Aantal medewerkers": "Het gekozen medewerkersgegeven dat voor de beoordeling wordt gebruikt. Nooit zelf verzinnen of berekenen. Eenheid medewerkers geeft aan of dit werkzame personen, FTE of onbekend betreft.",
     "Medewerkersklasse": "Categorie waarin het aantal medewerkers valt, bijvoorbeeld een grootteklasse.",
     "Bron medewerkers": "Bron waaruit het aantal medewerkers afkomstig is.",
+    "Bronniveau medewerkers": "Keuzelijst: A / B / C / D / Onbekend. Geeft het kwaliteitsniveau van de bron voor het medewerkersaantal aan.",
+    "Peildatum medewerkers": "Datum waarop het medewerkersaantal is gemeten, notatie dd-mm-jjjj. Tekst 'Onbekend' als geen peildatum kan worden vastgesteld.",
+    "Actualiteit medewerkers": "Keuzelijst: Actueel / Verouderd / Peildatum onbekend. Werkregel (voorlopig, nog te bevestigen door HAHEBO): Actueel = maximaal 24 maanden oud.",
+    "Meetniveau medewerkers": "Keuzelijst: Vestiging / Entiteit / Groep / Onbekend. Niveau waarop het medewerkersaantal is gemeten.",
+    "Eenheid medewerkers": "Keuzelijst: Werkzame personen / FTE / Onbekend. Werkzame personen is de voorkeursmaatstaf voor de grens van 50 medewerkers.",
+    "Handmatig beoordeeld": "Keuzelijst: Ja / Nee. Geeft aan of deze lead handmatig is beoordeeld.",
+    "Bronnen handmatige beoordeling": "Vrij tekstveld voor een of meerdere gebruikte bron-URL's of een korte verwijzing naar de gebruikte bronnen. Mag leeg blijven als Handmatig beoordeeld = Nee.",
     "Segment": "Keuzelijst: 50+ / regionaal <50 / nog te bepalen / onbekend.",
     "Algemeen e-mailadres": "Algemeen of centraal e-mailadres van het bedrijf.",
     "Telefoonnummer": "Telefoonnummer als tekst, zodat voorloopnullen behouden blijven.",
@@ -94,10 +113,12 @@ def build_workbook():
         for r in range(2, text_format_rows + 1):
             ws.cell(row=r, column=c).number_format = "@"
 
-    # Date format on "Datum verzameld"
-    date_col = col_index["Datum verzameld"]
-    for r in range(2, text_format_rows + 1):
-        ws.cell(row=r, column=date_col).number_format = "dd-mm-yyyy"
+    # Date format on "Datum verzameld" and "Peildatum medewerkers"
+    # (Peildatum medewerkers may also contain the text "Onbekend")
+    for date_col_name in ("Datum verzameld", "Peildatum medewerkers"):
+        date_col = col_index[date_col_name]
+        for r in range(2, text_format_rows + 1):
+            ws.cell(row=r, column=date_col).number_format = "dd-mm-yyyy"
 
     # Data validation: Segment
     segment_col_letter = get_column_letter(col_index["Segment"])
@@ -129,6 +150,81 @@ def build_workbook():
     ws.add_data_validation(dv_match)
     dv_match.add(f"{match_col_letter}2:{match_col_letter}{text_format_rows}")
 
+    # Data validation: Bronniveau medewerkers
+    bronniveau_col_letter = get_column_letter(col_index["Bronniveau medewerkers"])
+    dv_bronniveau = DataValidation(
+        type="list",
+        formula1='"' + ",".join(BRONNIVEAU_OPTIONS) + '"',
+        allow_blank=True,
+        showDropDown=False,
+    )
+    dv_bronniveau.error = "Kies een geldige waarde uit de lijst."
+    dv_bronniveau.errorTitle = "Ongeldige invoer"
+    dv_bronniveau.prompt = "Kies het bronniveau voor het medewerkersaantal."
+    dv_bronniveau.promptTitle = "Bronniveau medewerkers"
+    ws.add_data_validation(dv_bronniveau)
+    dv_bronniveau.add(f"{bronniveau_col_letter}2:{bronniveau_col_letter}{text_format_rows}")
+
+    # Data validation: Actualiteit medewerkers
+    actualiteit_col_letter = get_column_letter(col_index["Actualiteit medewerkers"])
+    dv_actualiteit = DataValidation(
+        type="list",
+        formula1='"' + ",".join(ACTUALITEIT_OPTIONS) + '"',
+        allow_blank=True,
+        showDropDown=False,
+    )
+    dv_actualiteit.error = "Kies een geldige waarde uit de lijst."
+    dv_actualiteit.errorTitle = "Ongeldige invoer"
+    dv_actualiteit.prompt = "Actueel = maximaal 24 maanden oud (voorlopige werkregel, nog te bevestigen door HAHEBO)."
+    dv_actualiteit.promptTitle = "Actualiteit medewerkers"
+    ws.add_data_validation(dv_actualiteit)
+    dv_actualiteit.add(f"{actualiteit_col_letter}2:{actualiteit_col_letter}{text_format_rows}")
+
+    # Data validation: Meetniveau medewerkers
+    meetniveau_col_letter = get_column_letter(col_index["Meetniveau medewerkers"])
+    dv_meetniveau = DataValidation(
+        type="list",
+        formula1='"' + ",".join(MEETNIVEAU_OPTIONS) + '"',
+        allow_blank=True,
+        showDropDown=False,
+    )
+    dv_meetniveau.error = "Kies een geldige waarde uit de lijst."
+    dv_meetniveau.errorTitle = "Ongeldige invoer"
+    dv_meetniveau.prompt = "Kies het meetniveau van het medewerkersaantal."
+    dv_meetniveau.promptTitle = "Meetniveau medewerkers"
+    ws.add_data_validation(dv_meetniveau)
+    dv_meetniveau.add(f"{meetniveau_col_letter}2:{meetniveau_col_letter}{text_format_rows}")
+
+    # Data validation: Eenheid medewerkers
+    eenheid_col_letter = get_column_letter(col_index["Eenheid medewerkers"])
+    dv_eenheid = DataValidation(
+        type="list",
+        formula1='"' + ",".join(EENHEID_OPTIONS) + '"',
+        allow_blank=True,
+        showDropDown=False,
+    )
+    dv_eenheid.error = "Kies een geldige waarde uit de lijst."
+    dv_eenheid.errorTitle = "Ongeldige invoer"
+    dv_eenheid.prompt = "Werkzame personen is de voorkeursmaatstaf voor de grens van 50 medewerkers."
+    dv_eenheid.promptTitle = "Eenheid medewerkers"
+    ws.add_data_validation(dv_eenheid)
+    dv_eenheid.add(f"{eenheid_col_letter}2:{eenheid_col_letter}{text_format_rows}")
+
+    # Data validation: Handmatig beoordeeld
+    handmatig_col_letter = get_column_letter(col_index["Handmatig beoordeeld"])
+    dv_handmatig = DataValidation(
+        type="list",
+        formula1='"' + ",".join(HANDMATIG_BEOORDEELD_OPTIONS) + '"',
+        allow_blank=True,
+        showDropDown=False,
+    )
+    dv_handmatig.error = "Kies een geldige waarde uit de lijst."
+    dv_handmatig.errorTitle = "Ongeldige invoer"
+    dv_handmatig.prompt = "Is deze lead handmatig beoordeeld?"
+    dv_handmatig.promptTitle = "Handmatig beoordeeld"
+    ws.add_data_validation(dv_handmatig)
+    dv_handmatig.add(f"{handmatig_col_letter}2:{handmatig_col_letter}{text_format_rows}")
+
     # Fictional example row
     example = {
         "Lead ID": "TEST001",
@@ -142,6 +238,13 @@ def build_workbook():
         "Aantal medewerkers": 75,
         "Medewerkersklasse": "50+",
         "Bron medewerkers": "https://example.invalid/medewerkers",
+        "Bronniveau medewerkers": "B",
+        "Peildatum medewerkers": "01-03-2025",
+        "Actualiteit medewerkers": "Actueel",
+        "Meetniveau medewerkers": "Vestiging",
+        "Eenheid medewerkers": "Werkzame personen",
+        "Handmatig beoordeeld": "Ja",
+        "Bronnen handmatige beoordeling": "https://example.invalid/handmatige-beoordeling",
         "Segment": "50+",
         "Algemeen e-mailadres": "info@voorbeeldbedrijf.nl",
         "Telefoonnummer": "0201234567",
@@ -156,7 +259,7 @@ def build_workbook():
         cell = ws.cell(row=2, column=c, value=(value if value != "" else None))
         if name in TEXT_COLUMNS:
             cell.number_format = "@"
-        if name == "Datum verzameld":
+        if name in ("Datum verzameld", "Peildatum medewerkers"):
             cell.number_format = "dd-mm-yyyy"
 
     # --- Sheet 2: Uitleg ---
