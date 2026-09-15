@@ -34,6 +34,7 @@ COLUMNS = [
     ("Handmatig beoordeeld", 16),
     ("Bronnen handmatige beoordeling", 32),
     ("Segment", 16),
+    ("Doelgroepstatus", 20),
     ("Algemeen e-mailadres", 28),
     ("Telefoonnummer", 16),
     ("Bron contactgegevens", 20),
@@ -47,9 +48,10 @@ SEGMENT_OPTIONS = ["50+", "regionaal <50", "nog te bepalen", "onbekend"]
 MATCH_RESULT_OPTIONS = ["nog niet gecontroleerd", "nieuw", "bestaat al"]
 BRONNIVEAU_OPTIONS = ["A", "B", "C", "D", "Onbekend"]
 ACTUALITEIT_OPTIONS = ["Expliciet gedateerd", "Actueel/live", "Historisch/verouderd", "Actualiteit onduidelijk"]
-MEETNIVEAU_OPTIONS = ["Vestiging", "Entiteit", "Groep", "Onbekend"]
+MEETNIVEAU_OPTIONS = ["Organisatie", "Entiteit", "Vestiging", "Onbekend"]
 EENHEID_OPTIONS = ["Werkzame personen", "FTE", "Onbekend"]
 HANDMATIG_BEOORDEELD_OPTIONS = ["Ja", "Nee"]
+DOELGROEPSTATUS_OPTIONS = ["binnen doelgroep", "buiten doelgroep", "nog niet te bepalen"]
 
 COLUMN_EXPLANATIONS = {
     "Lead ID": "Uniek volgnummer of code voor deze lead, bijvoorbeeld TEST001.",
@@ -72,11 +74,24 @@ COLUMN_EXPLANATIONS = {
         "Historisch/verouderd: het gegeven heeft duidelijk betrekking op een afgesloten of verouderde periode. "
         "Actualiteit onduidelijk: niet betrouwbaar vast te stellen of het gegeven nog actueel is."
     ),
-    "Meetniveau medewerkers": "Keuzelijst: Vestiging / Entiteit / Groep / Onbekend. Niveau waarop het medewerkersaantal is gemeten.",
+    "Meetniveau medewerkers": (
+        "Keuzelijst: Organisatie / Entiteit / Vestiging / Onbekend. "
+        "Organisatie: de onderneming of organisatie als commercieel geheel waarop HAHEBO de prospectbenadering richt. "
+        "Entiteit: een juridische entiteit, bijvoorbeeld een B.V. binnen een grotere organisatie. "
+        "Vestiging: een fysieke locatie. "
+        "Onbekend: niet betrouwbaar vast te stellen op welk niveau het medewerkersgegeven betrekking heeft."
+    ),
     "Eenheid medewerkers": "Keuzelijst: Werkzame personen / FTE / Onbekend. Werkzame personen is de voorkeursmaatstaf voor de grens van 50 medewerkers.",
     "Handmatig beoordeeld": "Keuzelijst: Ja / Nee. Geeft aan of deze lead handmatig is beoordeeld.",
     "Bronnen handmatige beoordeling": "Vrij tekstveld voor een of meerdere gebruikte bron-URL's of een korte verwijzing naar de gebruikte bronnen. Mag leeg blijven als Handmatig beoordeeld = Nee.",
     "Segment": "Keuzelijst: 50+ / regionaal <50 / nog te bepalen / onbekend.",
+    "Doelgroepstatus": (
+        "Keuzelijst: binnen doelgroep / buiten doelgroep / nog niet te bepalen. "
+        "Geeft aan of een lead binnen de commerciele doelgroep van HAHEBO valt nadat onder andere geografische criteria zijn toegepast. "
+        "binnen doelgroep: lead voldoet aan de vastgestelde doelgroepcriteria. "
+        "buiten doelgroep: lead is wel geidentificeerd maar valt op basis van vastgestelde criteria buiten de doelgroep. "
+        "nog niet te bepalen: nog niet alle criteria zijn door HAHEBO vastgesteld of voldoende informatie ontbreekt."
+    ),
     "Algemeen e-mailadres": "Algemeen of centraal e-mailadres van het bedrijf.",
     "Telefoonnummer": "Telefoonnummer als tekst, zodat voorloopnullen behouden blijven.",
     "Bron contactgegevens": "Bron waaruit het e-mailadres en/of telefoonnummer afkomstig is.",
@@ -231,6 +246,21 @@ def build_workbook():
     ws.add_data_validation(dv_handmatig)
     dv_handmatig.add(f"{handmatig_col_letter}2:{handmatig_col_letter}{text_format_rows}")
 
+    # Data validation: Doelgroepstatus
+    doelgroepstatus_col_letter = get_column_letter(col_index["Doelgroepstatus"])
+    dv_doelgroepstatus = DataValidation(
+        type="list",
+        formula1='"' + ",".join(DOELGROEPSTATUS_OPTIONS) + '"',
+        allow_blank=True,
+        showDropDown=False,
+    )
+    dv_doelgroepstatus.error = "Kies een geldige waarde uit de lijst."
+    dv_doelgroepstatus.errorTitle = "Ongeldige invoer"
+    dv_doelgroepstatus.prompt = "Kies: binnen doelgroep / buiten doelgroep / nog niet te bepalen."
+    dv_doelgroepstatus.promptTitle = "Doelgroepstatus"
+    ws.add_data_validation(dv_doelgroepstatus)
+    dv_doelgroepstatus.add(f"{doelgroepstatus_col_letter}2:{doelgroepstatus_col_letter}{text_format_rows}")
+
     # Fictional example row
     example = {
         "Lead ID": "TEST001",
@@ -252,6 +282,7 @@ def build_workbook():
         "Handmatig beoordeeld": "Ja",
         "Bronnen handmatige beoordeling": "https://example.invalid/handmatige-beoordeling",
         "Segment": "50+",
+        "Doelgroepstatus": "nog niet te bepalen",
         "Algemeen e-mailadres": "info@voorbeeldbedrijf.nl",
         "Telefoonnummer": "0201234567",
         "Bron contactgegevens": "https://example.invalid/contact",

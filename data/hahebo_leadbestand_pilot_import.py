@@ -6,7 +6,8 @@ Werkwijze:
 - Laadt het bestaande template (wordt zelf niet gewijzigd).
 - Verwijdert alleen de fictieve TEST001-voorbeeldregel.
 - Schrijft de 5 CSV-leads ongewijzigd (geen interpretatie, geen nieuwe
-  waarden) in de bestaande 26 kolommen.
+  waarden) in de bestaande 27 kolommen (kolomnaam-gestuurd, dus volgt
+  automatisch de kolomstructuur van het template).
 - Behoudt dropdowns, autofilter, bevroren rij, kolombreedtes, opmaak
   en het tabblad Uitleg van het template.
 - Slaat het resultaat op als HAHEBO_leadbestand_pilot.xlsx.
