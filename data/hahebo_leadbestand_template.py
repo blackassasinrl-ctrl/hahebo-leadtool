@@ -16,7 +16,9 @@ OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "HAHEBO_leadbestand_templa
 
 COLUMNS = [
     ("Lead ID", 12),
-    ("Bedrijfsnaam", 32),
+    ("Vestigingsnaam", 32),
+    ("Organisatienaam", 32),
+    ("Bron organisatienaam", 26),
     ("KVK-nummer", 14),
     ("Domein", 22),
     ("Website", 30),
@@ -55,7 +57,16 @@ DOELGROEPSTATUS_OPTIONS = ["binnen doelgroep", "buiten doelgroep", "nog niet te 
 
 COLUMN_EXPLANATIONS = {
     "Lead ID": "Uniek volgnummer of code voor deze lead, bijvoorbeeld TEST001.",
-    "Bedrijfsnaam": "Officiele handelsnaam van het bedrijf.",
+    "Vestigingsnaam": "De concrete lokale vestiging, handelsnaam, schoollocatie of locatie die tijdens discovery is gevonden.",
+    "Organisatienaam": (
+        "De canonieke organisatie of onderneming waarvan de totale medewerkersomvang wordt gebruikt voor de grens van 50 medewerkers. "
+        "Alleen invullen wanneer dit betrouwbaar uit de organisatiestructuur blijkt; bij twijfel: Onbekend. Nooit een beste gok invullen."
+    ),
+    "Bron organisatienaam": (
+        "Bron-URL of bronverwijzing waaruit de relatie tussen de Vestigingsnaam en Organisatienaam blijkt. "
+        "Als Organisatienaam betrouwbaar is vastgesteld: gebruikte bron(nen). "
+        "Als Organisatienaam = Onbekend en geen geschikte bron is onderzocht: Niet gevonden. Geen bron verzinnen."
+    ),
     "KVK-nummer": "KVK-nummer als tekst, zodat voorloopnullen behouden blijven.",
     "Domein": "Domeinnaam van het bedrijf, bijvoorbeeld voorbeeldbedrijf.nl. 'Niet gevonden' als er geen betrouwbare website is gevonden.",
     "Website": "Volledige website-URL van het bedrijf. 'Niet gevonden' als er geen betrouwbare website is gevonden.",
@@ -264,7 +275,9 @@ def build_workbook():
     # Fictional example row
     example = {
         "Lead ID": "TEST001",
-        "Bedrijfsnaam": "TESTDATA - verwijderen voor gebruik",
+        "Vestigingsnaam": "TESTDATA - verwijderen voor gebruik",
+        "Organisatienaam": "TESTDATA - Voorbeeld Groep B.V. (fictief)",
+        "Bron organisatienaam": "https://example.invalid/organisatiestructuur",
         "KVK-nummer": "01234567",
         "Domein": "voorbeeldbedrijf.nl",
         "Website": "https://www.voorbeeldbedrijf.nl",
