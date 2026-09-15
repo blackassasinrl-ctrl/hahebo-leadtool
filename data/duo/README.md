@@ -40,3 +40,37 @@ afgeleide dataset. Dit document legt per bestand de herkomst vast.
 - Waarden uit de geselecteerde regels zijn niet inhoudelijk aangepast.
 
 - De compacte versie mag worden gebruikt voor de HAHEBO onderwijslookup, maar mag NIET worden aangeduid als het originele officiële DUO-bestand.
+
+## BRIN -> aantal personen lookup
+
+- Het script `scripts/duo_onderwijs_lookup.py` voert de lookup uit op basis
+  van de bestanden in deze map (alleen lezen, nooit gewijzigd).
+
+- Voorbeeldcommando:
+  ```
+  python scripts/duo_onderwijs_lookup.py 17HN
+  python scripts/duo_onderwijs_lookup.py 20GB
+  python scripts/duo_onderwijs_lookup.py --selftest
+  ```
+
+- Segmentatie (50+ / nog te bepalen / onbekend) vindt plaats op
+  BRIN-/instellingsniveau, niet op vestigingsniveau. Eén BRIN kan meerdere
+  fysieke vestigingen omvatten; het personeelsaantal is dan het totaal voor
+  de hele instelling.
+
+- Een vestigingscode (bijv. `17HN00`) wordt NIET als BRIN-input
+  geaccepteerd. Het script accepteert uitsluitend een code van exact 4
+  tekens en geeft anders een duidelijke foutmelding.
+
+- Een niet-numerieke actuele waarde (`*`, `**`, `<5`, lege cel, andere
+  tekst) wordt NOOIT naar 0 geconverteerd. In dat geval is
+  `aantal_personen = null` en `segment = onbekend`.
+
+- Een historische (oudere) numerieke waarde wordt uitsluitend als context
+  teruggegeven (`laatste_numerieke_waarde`/`_jaar`/`_peildatum`) en bepaalt
+  nooit het segment van de actuele waarde.
+
+- PO-personeelsdata komt uit de afgeleide compacte dataset
+  (`duo_po_brin_personen_2011_2025_compact.xlsx`), niet uit het originele
+  officiële DUO-bestand. De scriptoutput labelt dit expliciet als
+  `personeelsbron_type = afgeleide_compacte_DUO_dataset`.
