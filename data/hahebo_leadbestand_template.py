@@ -33,7 +33,7 @@ COLUMNS = [
     ("Actualiteit medewerkers", 20),
     ("Meetniveau medewerkers", 18),
     ("Eenheid medewerkers", 18),
-    ("Handmatig beoordeeld", 16),
+    ("Status handmatige beoordeling", 24),
     ("Bronnen handmatige beoordeling", 32),
     ("Segment", 16),
     ("Doelgroepstatus", 20),
@@ -52,7 +52,7 @@ BRONNIVEAU_OPTIONS = ["A", "B", "C", "D", "Onbekend"]
 ACTUALITEIT_OPTIONS = ["Expliciet gedateerd", "Actueel/live", "Historisch/verouderd", "Actualiteit onduidelijk"]
 MEETNIVEAU_OPTIONS = ["Organisatie", "Entiteit", "Vestiging", "Onbekend"]
 EENHEID_OPTIONS = ["Werkzame personen", "FTE", "Onbekend"]
-HANDMATIG_BEOORDEELD_OPTIONS = ["Ja", "Nee"]
+STATUS_HANDMATIGE_BEOORDELING_OPTIONS = ["niet nodig", "nodig", "afgerond"]
 DOELGROEPSTATUS_OPTIONS = ["binnen doelgroep", "buiten doelgroep", "nog niet te bepalen"]
 
 COLUMN_EXPLANATIONS = {
@@ -93,8 +93,19 @@ COLUMN_EXPLANATIONS = {
         "Onbekend: niet betrouwbaar vast te stellen op welk niveau het medewerkersgegeven betrekking heeft."
     ),
     "Eenheid medewerkers": "Keuzelijst: Werkzame personen / FTE / Onbekend. Werkzame personen is de voorkeursmaatstaf voor de grens van 50 medewerkers.",
-    "Handmatig beoordeeld": "Keuzelijst: Ja / Nee. Geeft aan of deze lead handmatig is beoordeeld.",
-    "Bronnen handmatige beoordeling": "Vrij tekstveld voor een of meerdere gebruikte bron-URL's of een korte verwijzing naar de gebruikte bronnen. Mag leeg blijven als Handmatig beoordeeld = Nee.",
+    "Status handmatige beoordeling": (
+        "Keuzelijst: niet nodig / nodig / afgerond. "
+        "Geeft aan of voor deze lead een menselijke beoordeling nodig is en of deze al is uitgevoerd. "
+        "niet nodig: de automatische bron- en beslisregels leveren voldoende duidelijkheid op, of er ontbreekt simpelweg informatie zonder dat er materiaal is dat een mens inhoudelijk moet wegen. "
+        "nodig: er is informatie beschikbaar die een mens inhoudelijk moet beoordelen, maar deze beoordeling is nog niet uitgevoerd. "
+        "afgerond: de benodigde menselijke beoordeling is daadwerkelijk uitgevoerd."
+    ),
+    "Bronnen handmatige beoordeling": (
+        "Vrij tekstveld voor een of meerdere gebruikte bron-URL's of een korte verwijzing naar de gebruikte bronnen. "
+        "Bij Status handmatige beoordeling = niet nodig: leeg. "
+        "Bij nodig: de bronnen die aanleiding geven tot de benodigde beoordeling. "
+        "Bij afgerond: de bronnen waarop de uitgevoerde beoordeling is gebaseerd."
+    ),
     "Segment": "Keuzelijst: 50+ / regionaal <50 / nog te bepalen / onbekend.",
     "Doelgroepstatus": (
         "Keuzelijst: binnen doelgroep / buiten doelgroep / nog niet te bepalen. "
@@ -242,20 +253,20 @@ def build_workbook():
     ws.add_data_validation(dv_eenheid)
     dv_eenheid.add(f"{eenheid_col_letter}2:{eenheid_col_letter}{text_format_rows}")
 
-    # Data validation: Handmatig beoordeeld
-    handmatig_col_letter = get_column_letter(col_index["Handmatig beoordeeld"])
-    dv_handmatig = DataValidation(
+    # Data validation: Status handmatige beoordeling
+    status_handmatig_col_letter = get_column_letter(col_index["Status handmatige beoordeling"])
+    dv_status_handmatig = DataValidation(
         type="list",
-        formula1='"' + ",".join(HANDMATIG_BEOORDEELD_OPTIONS) + '"',
+        formula1='"' + ",".join(STATUS_HANDMATIGE_BEOORDELING_OPTIONS) + '"',
         allow_blank=True,
         showDropDown=False,
     )
-    dv_handmatig.error = "Kies een geldige waarde uit de lijst."
-    dv_handmatig.errorTitle = "Ongeldige invoer"
-    dv_handmatig.prompt = "Is deze lead handmatig beoordeeld?"
-    dv_handmatig.promptTitle = "Handmatig beoordeeld"
-    ws.add_data_validation(dv_handmatig)
-    dv_handmatig.add(f"{handmatig_col_letter}2:{handmatig_col_letter}{text_format_rows}")
+    dv_status_handmatig.error = "Kies een geldige waarde uit de lijst."
+    dv_status_handmatig.errorTitle = "Ongeldige invoer"
+    dv_status_handmatig.prompt = "Kies: niet nodig / nodig / afgerond."
+    dv_status_handmatig.promptTitle = "Status handmatige beoordeling"
+    ws.add_data_validation(dv_status_handmatig)
+    dv_status_handmatig.add(f"{status_handmatig_col_letter}2:{status_handmatig_col_letter}{text_format_rows}")
 
     # Data validation: Doelgroepstatus
     doelgroepstatus_col_letter = get_column_letter(col_index["Doelgroepstatus"])
@@ -292,8 +303,8 @@ def build_workbook():
         "Actualiteit medewerkers": "Expliciet gedateerd",
         "Meetniveau medewerkers": "Vestiging",
         "Eenheid medewerkers": "Werkzame personen",
-        "Handmatig beoordeeld": "Ja",
-        "Bronnen handmatige beoordeling": "https://example.invalid/handmatige-beoordeling",
+        "Status handmatige beoordeling": "niet nodig",
+        "Bronnen handmatige beoordeling": "",
         "Segment": "50+",
         "Doelgroepstatus": "nog niet te bepalen",
         "Algemeen e-mailadres": "info@voorbeeldbedrijf.nl",
