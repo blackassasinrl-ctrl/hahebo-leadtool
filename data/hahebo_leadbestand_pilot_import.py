@@ -16,7 +16,10 @@ Geen scraping, geen zoekfunctionaliteit, geen nieuwe classificatielogica.
 
 import csv
 import os
+from datetime import datetime
 from openpyxl import load_workbook
+
+DATE_COLUMN = "Datum verzameld"
 
 BASE_DIR = os.path.dirname(__file__)
 TEMPLATE_PATH = os.path.join(BASE_DIR, "HAHEBO_leadbestand_template.xlsx")
@@ -53,11 +56,19 @@ def main():
         ws.cell(row=r, column=lead_id_col).number_format = "@"
 
     # Schrijf de 5 pilotleads ongewijzigd, exact zoals in de CSV, vanaf rij 2.
+    # "Datum verzameld" wordt als echte Excel-datum opgeslagen (i.p.v. tekst),
+    # zodat later correct op datum gesorteerd en gefilterd kan worden. De
+    # zichtbare notatie blijft dd-mm-jjjj via het bestaande celformaat.
     for r, row in enumerate(rows, start=2):
         for name in headers:
             raw = row.get(name, "")
-            value = raw if raw != "" else None
-            ws.cell(row=r, column=col_index[name], value=value)
+            if name == DATE_COLUMN and raw != "":
+                value = datetime.strptime(raw, "%d-%m-%Y").date()
+            else:
+                value = raw if raw != "" else None
+            cell = ws.cell(row=r, column=col_index[name], value=value)
+            if name == DATE_COLUMN and raw != "":
+                cell.number_format = "dd-mm-yyyy"
 
     wb.save(OUTPUT_PATH)
     print(f"Bestand opgeslagen: {OUTPUT_PATH}")
